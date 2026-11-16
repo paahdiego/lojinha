@@ -1,0 +1,55 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: lojinha
+    ports:
+      - "55432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d lojinha"]
+      interval: 2s
+      retries: 15
+
+  # Roda uma vez, prepara o banco e sai
+  migrate:
+    build: ./api
+    command: ["node", "src/migrate.js"]
+    environment:
+      DIRECT_URL: postgres://postgres:postgres@db:5432/lojinha
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    build: ./api
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@db:5432/lojinha
+      PORT: 3001
+    ports:
+      - "3001:3001"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/health"]
+      interval: 5s
+      retries: 10
+
+  web:
+    image: nginx:alpine
+    ports:
+      - "5173:80"
+    volumes:
+      - ./web/index.html:/usr/share/nginx/html/index.html:ro
+      - ./web/styles.css:/usr/share/nginx/html/styles.css:ro
+      - ./web/app.js:/usr/share/nginx/html/app.js:ro
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  db-data:
