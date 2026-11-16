@@ -1,0 +1,23 @@
+{
+  "name": "lojinha-web",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "start": "serve -l 5173 .",
+    "cy:run": "cypress run",
+    "test:e2e": "start-server-and-test start http://localhost:5173 cy:run"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "private": "true",
+  "devDependencies": {
+    "cypress": "^16.3.0",
+    "serve": "^14.2.8",
+    "start-server-and-test": "^3.0.13"
+  },
+  "allowScripts": {
+    "cypress@16.3.0": true
+  }
+}
